@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Jump Counter</title>
+    <script src="/socket.io/socket.io.js">
+        
+    </script>
+    <style>
+        /* Reset some default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Body styling */
+body {
+    background-color: #f3f4f6;
+    color: #333;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Container for centering content */
+#container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Header styling */
+h1 {
+    font-size: 2.5rem;
+    color: #1d1d1d;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* Form styling */
+#userForm {
+    margin-bottom: 30px;
+}
+
+#userName {
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 80%;
+    max-width: 400px;
+    margin-right: 10px;
+}
+
+button[type="submit"] {
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #1db954; /* Duolingo-like green */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+    background-color: #17a74a; /* Darker green on hover */
+}
+
+/* Video feed styling */
+#video {
+    width: 100%;
+    max-width: 640px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+}
+
+/* Star jump count display styling */
+#countDisplay {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+#countDisplay h2 {
+    font-size: 2rem;
+    color: #333;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    #userName {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    button[type="submit"] {
+        width: 100%;
+    }
+
+    #countDisplay {
+        margin: 20px 10px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Star Jump Counter</h1>
+        <img id='video' src="http://localhost:5000/video_feed">
+        <!-- style="display:none" -->
+        <form id="userForm">
+            <input type="text" id="userName" placeholder="Enter username" required>
+            <button type="submit">Start</button>
+        </form>
+        <div id="countDisplay">
+            <h2>Star Jumps: <span id="starJumpCount">0</span></h2>
+        </div>
+    </div>
+    <script>
+        // Connect to Socket.io
+        const socket = io();
+
+        // Handle form submission
+        document.getElementById('userForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const userName = document.getElementById('userName').value;
+
+            fetch('http://localhost:3000/start-python', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(response => {
+                if (response.ok) {
+                    console.log('Python process started');
+                } else {
+                    console.error('Error starting Python process');
+                }
+            }).catch(error => {
+                console.error('Fetch error:', error);
+            });
+
+            fetch('/update-star-jumps', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_name: userName, star_jumps: 0 })
+            }).then(response => {
+                if (response.ok) {
+                    console.log('User and star jumps updated');
+                } else {
+                    console.error('Error updating user and star jumps');
+                }
+            });
+            
+        });
+        // socket.on('python-started', function() {
+        //     console.log('Python process has started, loading video feed...');
+        //     video.style.display = 'block';
+            // Set the video source to start streaming the feed from Flask
+            // document.getElementById('video').src = 'http://localhost:5000/video_feed';
+        // });
+        // Update star jump count from the server
+        socket.on('star-jump-update', function(data) {
+            document.getElementById('starJumpCount').textContent = data.star_jumps;
+        });
+
+        // Stream video feed
+
+    </script>
+</body>
+</html>
